@@ -5,6 +5,7 @@ import (
 	"sistemabackend/utils"
 	"net/http"
 	"encoding/json"
+	"log"
 )
 // Metodo para obtener todos los usuarios (GET /api/users)
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -32,19 +33,26 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 // Metodo para crear un nuevo usuario (POST /api/users)
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	// Parsear el JSON que envía el frontend
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		utils.HandleError(w, "Error al parsear los datos", http.StatusBadRequest)
-		return
-	}
+    log.Println("Solicitud recibida en CreateUser")
 
-	db := utils.IniciarConexion()
-	if err := db.Create(&user).Error; err != nil {
-		utils.HandleError(w, "Error al insertar el usuario", http.StatusInternalServerError)
-		return
-	}
-	utils.RespondJSON(w, user, http.StatusCreated)
+    var user models.User
+    if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+        log.Printf("Error al parsear el JSON: %v\n", err)
+        utils.HandleError(w, "Error al parsear los datos", http.StatusBadRequest)
+        return
+    }
+
+    log.Printf("Datos recibidos: %+v\n", user)
+
+    db := utils.IniciarConexion()
+    if err := db.Create(&user).Error; err != nil {
+        log.Printf("Error al insertar el usuario en la base de datos: %v\n", err)
+        utils.HandleError(w, "Error al insertar el usuario", http.StatusInternalServerError)
+        return
+    }
+
+    log.Printf("Usuario creado exitosamente: %+v\n", user)
+    utils.RespondJSON(w, user, http.StatusCreated)
 }
 
 // Metodo para actualizar un usuario (PUT /api/users/{id})
